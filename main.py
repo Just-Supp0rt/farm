@@ -28,7 +28,7 @@ class GridApp(tk.Tk):
 
     def unlock_initial_tiles(self):
         # Unlock 2 tiles right and 3 tiles down, 6 in total
-        initial_unlocked_positions = [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)]
+        initial_unlocked_positions = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)]
         for x, y in initial_unlocked_positions:
             self.tiles[(x, y)].unlocked = True
             self.update_tile_button(x, y)
@@ -36,7 +36,7 @@ class GridApp(tk.Tk):
     def create_tile_button(self, x, y):
         btn = tk.Button(self.grid_frame, text="", width=4, height=2,
                         command=lambda: self.on_tile_click(x, y))
-        btn.grid(row=x, column=y)
+        btn.grid(row=y, column=x)
         self.update_tile_button(x, y, btn)
 
     def on_tile_click(self, x, y):
@@ -47,7 +47,7 @@ class GridApp(tk.Tk):
 
     def update_tile_button(self, x, y, btn=None):
         if btn is None:
-            btn = self.grid_frame.grid_slaves(row=x, column=y)[0]
+            btn = self.grid_frame.grid_slaves(row=y, column=x)[0]
         if self.tiles[(x, y)].unlocked:
             btn.config(bg="lightgreen", state="disabled")
         else:
@@ -64,8 +64,8 @@ class GridApp(tk.Tk):
         load_button.pack(side=tk.LEFT, padx=10)
 
     def unlock_tile(self):
-        x = simpledialog.askinteger("Input", "Enter the X coordinate of the tile to unlock:")
-        y = simpledialog.askinteger("Input", "Enter the Y coordinate of the tile to unlock:")
+        x = simpledialog.askinteger("Input", "Enter the X coordinate of the tile to unlock:") - 1
+        y = simpledialog.askinteger("Input", "Enter the Y coordinate of the tile to unlock:") - 1
         if (x, y) in self.tiles:
             if not self.tiles[(x, y)].unlocked:
                 self.tiles[(x, y)].unlocked = True
@@ -78,7 +78,6 @@ class GridApp(tk.Tk):
     def save_layout(self):
         layout = {"tiles": {}}
         for (x, y), tile in self.tiles.items():
-            # Convert the (x, y) tuple to a string key
             key = f"{x},{y}"
             layout["tiles"][key] = {"unlocked": tile.unlocked}
         with open("grid_layout.json", "w") as file:
@@ -90,7 +89,6 @@ class GridApp(tk.Tk):
             with open("grid_layout.json", "r") as file:
                 layout = json.load(file)
             for key, tile_info in layout["tiles"].items():
-                # Convert the string key back to a tuple (x, y)
                 x, y = map(int, key.split(","))
                 self.tiles[(x, y)].unlocked = tile_info["unlocked"]
                 self.update_tile_button(x, y)
